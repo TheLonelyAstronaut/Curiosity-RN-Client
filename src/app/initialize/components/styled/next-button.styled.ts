@@ -5,10 +5,10 @@ export const NextButtonWrapper = styled.TouchableOpacity`
     padding-horizontal: 25px;
     border-radius: 50px;
     background-color: #dfe6e9;
-    width: 110px;
     height: 45px;
     align-items: center;
     justify-content: center;
+    margin-bottom: 20px;
 `;
 
 export const TextWrapper = styled.Text`

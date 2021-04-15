@@ -2,13 +2,13 @@ import React, { useCallback, useEffect } from 'react';
 import { SafeContainer } from '../common-ui/styled/containers.styled';
 import { HomeScreenNavigationProp, HomeScreenRouteProp } from '../routing/navigation.params';
 import { socket } from '../../networking/socket';
-import { Streaming, TouchableHandler, VerticalSeparator } from './components/styled/home-screen.styled';
+import { Streaming, TouchableHandler } from './components/styled/home-screen.styled';
 import WebView from 'react-native-webview';
 import { FloatingButton } from '../common-ui/floating-button.component';
 import { TouchableControllerZone } from './components/touchable-controller-zone.component';
-import { generateEngineEvent, generateRotationEvent } from '../../networking/events';
+import { generateEngineEvent, generateRotationEvent, ON_ERROR } from '../../networking/events';
 import { accelerometer } from 'react-native-sensors';
-import {Platform} from "react-native";
+import { Platform } from 'react-native';
 
 export type HomeScreenProps = {
     navigation: HomeScreenNavigationProp;
@@ -42,11 +42,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = (props: HomeScreenProps) =>
             socket.emit(generateRotationEvent(result));
         });
 
+        socket.addHandler(ON_ERROR, () => {
+            props.navigation.goBack();
+            alert('Connection lost!');
+        });
+
         return () => {
-            //socket.close();
             subscription.unsubscribe();
         };
-    }, []);
+    }, [props.navigation]);
 
     useEffect(() => {
         socket.emit(generateEngineEvent(enginePercentage));

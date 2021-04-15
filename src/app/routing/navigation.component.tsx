@@ -17,13 +17,13 @@ export const NavigationComponent: React.FC = () => {
                 headerMode={'none'}
             >
                 {
-                    /*<>
+                    <>
                         <Stack.Screen name={'Initialize'} component={InitializeScreen} />
                         <Stack.Screen name={'Home'} component={HomeScreen} />
-                    </>*/
+                    </>
                 }
                 {
-                    <Stack.Screen name={'Home'} component={HomeScreen} initialParams={{ ip: '192.168.0.19' }} />
+                    //<Stack.Screen name={'Home'} component={HomeScreen} initialParams={{ ip: '192.168.0.19' }} />
                 }
                 <Stack.Screen name={'Settings'} component={SettingsScreen} />
             </Stack.Navigator>
