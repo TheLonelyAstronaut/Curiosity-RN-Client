@@ -6,7 +6,9 @@ import { Streaming, TouchableHandler, VerticalSeparator } from './components/sty
 import WebView from 'react-native-webview';
 import { FloatingButton } from '../common-ui/floating-button.component';
 import { TouchableControllerZone } from './components/touchable-controller-zone.component';
-import {generateEngineEvent, generateRotationEvent} from "../../networking/events";
+import { generateEngineEvent, generateRotationEvent } from '../../networking/events';
+import { accelerometer } from 'react-native-sensors';
+import {Platform} from "react-native";
 
 export type HomeScreenProps = {
     navigation: HomeScreenNavigationProp;
@@ -16,7 +18,6 @@ export type HomeScreenProps = {
 export const HomeScreen: React.FC<HomeScreenProps> = (props: HomeScreenProps) => {
     const webView = React.useRef<WebView>();
     const streamingSource = React.useMemo(() => `http://${props.route.params.ip}:81/stream`, [props.route]);
-    const [rotatePercentage, setRotatePercentage] = React.useState<number>(0.5);
     const [enginePercentage, setEnginePercentage] = React.useState<number>(0.5);
 
     const injectedJS = React.useMemo(
@@ -34,20 +35,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = (props: HomeScreenProps) =>
     }, [props.navigation, props.route.params.ip]);
 
     useEffect(() => {
+        const subscription = accelerometer.subscribe(({ y }) => {
+            const maxValue = Platform.OS === 'ios' ? 1 : 10;
+            const mappedValue = y / maxValue;
+            const result = (mappedValue < -0.5 ? -0.5 : mappedValue > 0.5 ? 0.5 : mappedValue) + 0.5;
+            socket.emit(generateRotationEvent(result));
+        });
+
         return () => {
             //socket.close();
+            subscription.unsubscribe();
         };
     }, []);
 
     useEffect(() => {
         socket.emit(generateEngineEvent(enginePercentage));
-        socket.emit(generateRotationEvent(rotatePercentage));
-    }, [enginePercentage, rotatePercentage]);
+    }, [enginePercentage]);
 
     return (
         <SafeContainer>
             <Streaming
-                source={require('./components/home-background.html')}
+                source={
+                    Platform.OS === 'ios'
+                        ? require('./components/home-background.html')
+                        : { uri: 'file:///android_asset/home-background.html' }
+                }
                 ref={(ref) => (webView.current = ref as WebView | undefined)}
                 javaScriptEnabled={true}
                 injectedJavaScript={injectedJS}
@@ -56,8 +68,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = (props: HomeScreenProps) =>
                 }}
             />
             <TouchableHandler>
-                <TouchableControllerZone vertical={false} onValueChanged={setRotatePercentage} />
-                <VerticalSeparator />
                 <TouchableControllerZone vertical={true} onValueChanged={setEnginePercentage} />
             </TouchableHandler>
             <FloatingButton onPress={handleSettingsPress} source={require('../../assets/settings.png')} />

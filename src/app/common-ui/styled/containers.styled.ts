@@ -10,4 +10,5 @@ export const Container = styled.View`
 export const SafeContainer = styled.View`
     flex: 1;
     background-color: #636e72;
+    flex-direction: row;
 `;
